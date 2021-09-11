@@ -4,6 +4,9 @@
 #include <string>
 #include <omp.h>
 
+#include <unistd.h>
+#include <ios>
+#include <fstream>
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -18,7 +21,7 @@ extern "C" {
 typedef	struct OutputData
 {
 	int colorCnt, mergeConflictCnt;
-	double prepTime, execTime;
+	double prepTime, execTime,vm,rss;
 }OutputData;
 //Number of colors
 inline int ColorsNum(int nov, short colorList[])
@@ -100,12 +103,47 @@ int maxEdgeNum(int *col, int *row,  int nov)
 	}
 	return Max;
 }
+void process_mem_usage(double& vm_usage, double& resident_set)
+{
+   using std::ios_base;
+   using std::ifstream;
+   using std::string;
 
+   vm_usage     = 0.0;
+   resident_set = 0.0;
+
+   // 'file' stat seems to give the most reliable results
+   //
+   ifstream stat_stream("/proc/self/stat",ios_base::in);
+
+   // dummy vars for leading entries in stat that we don't care about
+   //
+   string pid, comm, state, ppid, pgrp, session, tty_nr;
+   string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+   string utime, stime, cutime, cstime, priority, nice;
+   string O, itrealvalue, starttime;
+
+   // the two fields we want
+   //
+   unsigned long vsize;
+   long rss;
+
+   stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+               >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+               >> utime >> stime >> cutime >> cstime >> priority >> nice
+               >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+
+   stat_stream.close();
+
+   long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+   vm_usage     = vsize / 1024.0;
+   resident_set = rss * page_size_kb;
+}
 
 	OutputData sequentialMethod( int *row, int *col, int nov, short colorList[], int maxEdgeCnt)
 	{
 		OutputData output;
-		double startTime, endTime;
+		double startTime, endTime, vm, rss;;
 		int maxColor = 0;
 		bool *ExistedColor = new bool[maxEdgeCnt + 1]();
 
@@ -122,13 +160,16 @@ int maxEdgeNum(int *col, int *row,  int nov)
 		output.colorCnt = maxColor + 1;
 		output.execTime = endTime - startTime;
 		output.prepTime = output.mergeConflictCnt = 0;
+		process_mem_usage(vm, rss);
+		output.vm= vm;
+		output.rss=rss;
 		return output;
 	}
 
 	OutputData parallelMethod( int *row, int *col, int nov, short colorList[], int maxEdgeCnt)
 	{
 		OutputData output;
-		double TimeB, TimeE;
+		double TimeB, TimeE, vm, rss;
 		int mergeConflictCnt = -1;
 		int confArrSize = nov / 2 + 1;
 		int *VerticesConflicted = new int[confArrSize]();
@@ -176,6 +217,9 @@ int maxEdgeNum(int *col, int *row,  int nov)
 		output.mergeConflictCnt = mergeConflictCnt;
 		output.colorCnt = ColorsNum(nov, colorList);
 		output.prepTime = 0;
+		process_mem_usage(vm, rss);
+		output.vm= vm;
+		output.rss=rss;
 		return output;
 	}
 
@@ -218,6 +262,11 @@ int main(int argc, char *argv[])
 
 	// Parallel
 	int Numthreads[] = {1,2,4};
+	using std::cout;
+   using std::endl;
+
+  
+   
 	for (int i = 0; i < 3; i++)
 	{
 		omp_set_num_threads(Numthreads[i]);
@@ -229,15 +278,16 @@ int main(int argc, char *argv[])
 		fill_n(isDetected, outSize, false);
 #endif // DEBUG
 		fill_n(colors, nov, -1); // reinitialize
+		
 	}
 
 	// Print results
-	printf(" Sequential  - number of colors %d- done in %10.10f s \n",
-			 SequentialTest.colorCnt, SequentialTest.execTime);
+	printf(" Sequential  - number of colors %d- done in %10.10f s  with rss %f KB and VM %f KB \n",
+			 SequentialTest.colorCnt, SequentialTest.execTime, SequentialTest.rss, SequentialTest.vm);
 		cout << "__________________________________________________________\n";
 	for (int i = 0; i < 3; i++)
-		printf(" Parallel  with  %d threads - number of colors %d- done in %10.10f s \n",
-			 Numthreads[i], ParallelTest[i].colorCnt, ParallelTest[i].execTime);
+		printf(" Parallel  with  %d threads - number of colors %d- done in %10.10f s  with rss %f KB and VM %f KB\n",
+			 Numthreads[i], ParallelTest[i].colorCnt, ParallelTest[i].execTime, ParallelTest[i].rss, ParallelTest[i].vm);
 			 	cout << "__________________________________________________________\n";
 	cout << "\n";
 	return 0;
