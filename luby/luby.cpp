@@ -49,14 +49,14 @@ public:
         }
     }
 
-    vector<int> *FindMaximalIndependentSet()
+    vector<int> FindMaximalIndependentSet()
     {
         //initialization of I
         //vector<int> A[] = graph;
         int _V = vs;
         int M_counter = 0;
         vector<int> *A = new vector<int>[ V + 1 ];
-        vector<int> *M = new vector<int>[ V ];
+        vector<int> M;
 
         for ( int i = 1; i <= V; i++ )
             for ( int j = 0; j < graph[ i ].size(); j++ )
@@ -147,18 +147,18 @@ public:
 
             //add M_prim to M
             for ( int j = 0; j < M_prim.size(); j++ )
-                M[ M_counter ].push_back( M_prim[ j ] );
+                M.push_back( M_prim[ j ] );
 
             _V -= ( int ) M_prim.size();
             vs -= ( int ) M_prim.size();
 
             //remove from v the set s and all the neighbors in s
 
-            cout << "MIS: {";
+            //cout << "MIS: {";
             for ( int i = 0; i < M_prim.size(); i++ )
             {
                 int index = M_prim[ i ];
-                cout << index << ", ";
+                //cout << index << ", ";
 
                 // removing neighbors of vertex v
                 for ( int j = 0; j < A[ index ].size(); j++ )
@@ -175,20 +175,7 @@ public:
                 graph[ index ].erase( graph[ index ].begin(), graph[ index ].end() );
             }
 
-            cout << "}" << endl;
-
-            /*for ( int j = 1; j <= V; j++ )
-            {
-                for ( int i = 0; i < A[ j ].size(); i++ )
-                {
-                    for ( int i = 0; i < M[ M_counter ].size(); i++ )
-                    {
-                        A[ j ].erase( std::remove( A[ j ].begin(), A[ j ].end(), M[ M_counter ][ i ] ), A[ j ].end());
-                    }
-                }
-            }*/
-
-            M_counter += 1;
+            //cout << "}" << endl;
         }
 
         return M;
@@ -203,15 +190,12 @@ public:
 
         while ( vs > 0 )
         {
-            vector<int> * mis = this->FindMaximalIndependentSet();
+            vector<int> mis = this->FindMaximalIndependentSet();
 
-            for ( int i = 0; i < V; i++ )
+            if ( mis.size() > 0 )
             {
-                if ( mis[ i ].size() == 0 )
-                    break;
-
-                for ( int j = 0; j < mis[ i ].size(); j++ )
-                    colors[ mis[ i ][ j ] ] = color;
+                for ( int i = 0; i < mis.size(); i++ )
+                    colors[ mis[ i ] ] = color;
 
                 color ++;
             }
