@@ -1,3 +1,7 @@
+//
+// Created by Gianni Cito - s261725@studenti.polito.it
+//
+
 #include <iostream>
 #include <thread>
 #include <fstream>

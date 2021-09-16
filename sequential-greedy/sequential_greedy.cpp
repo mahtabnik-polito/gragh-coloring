@@ -1,6 +1,6 @@
-/*
- * Implementation of Sequential Greedy Algorithm
- */
+//
+// Created by Gianni Cito - s261725@studenti.polito.it
+//
 #include <iostream>
 #include <list>
 #include <fstream>
