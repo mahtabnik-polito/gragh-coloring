@@ -60,6 +60,7 @@ public:
         int _V = vs;
         vector<int> *A = new vector<int>[V + 1];
         vector<int> M;
+        mutex m;
 
         for ( int i = 1; i <= V; i++ )
             for ( int j = 0; j < graph[ i ].size(); j++ )
@@ -103,7 +104,7 @@ public:
                 int start = end;
                 end += threads_size[ i ];
 
-                threadPool.push_back(
+                threadPool.emplace_back(
                         thread(
                                 [ start, end, A, &randomValues ]()
                                 {
@@ -133,13 +134,13 @@ public:
                 int start = end;
                 end += threads_size[ i ];
 
-                threadPool.push_back(
+                threadPool.emplace_back(
                         thread(
-                                [ start, end, A, randomValues, &M_prim ]()
+                                [ start, end, A, randomValues, &M_prim, &m ]()
                                 {
                                     for ( int v = start; v < end; v++ )
                                     {
-                                        if ( A[ v ].empty() )
+                                        if ( A[ v ].size() == 0 )
                                             continue;
 
                                         bool add = true;
@@ -154,7 +155,12 @@ public:
                                         }
 
                                         if ( add )
-                                            M_prim.push_back( v );
+                                        {
+                                            {
+                                                unique_lock<mutex> l{ m };
+                                                M_prim.push_back( v );
+                                            }
+                                        }
                                     }
                                 }
                         )
@@ -262,7 +268,7 @@ int main()
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/test2.graph" );
+    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/rgg_n_2_15_s0.graph" );
 
     if ( !file.is_open())
         cout << "failed to open file\n";

@@ -11,6 +11,8 @@
 
 using namespace std;
 
+int NTHREAD = 0;
+
 class Graph
 {
     int V;
@@ -63,35 +65,65 @@ public:
 
         vector<int> *A = graph;
 
+        // handling threads according to the number of vertices
+        int duration = V / NTHREAD;
+        if ( NTHREAD > V )
+        {
+            duration = 1;
+            NTHREAD = V;
+        }
+
+        vector<int> threads_size( NTHREAD, duration );
+
+        // assigning remaining vertex to the corresponding thread
+        if ( NTHREAD * duration < V )
+        {
+            int n = V - ( NTHREAD * duration );
+            for ( int i = 0; i < n; i++ )
+                threads_size[ i ]++;
+        }
+
+        std::vector<std::thread> threadPool;
+        vector<int> I;
+
+        mutex m;
+
         while ( vs > 0 )
         {
-            vector<int> I;
-
-            //random values
-            std::vector<std::thread> threadPool;
-
-            for ( int v = 1; v <= V; v++ )
+            int end = 1;
+            for ( int i = 0; i < NTHREAD; i++ )
             {
-                if ( A[ v ].size() == 0 )
-                    continue;
+                int start = end;
+                end += threads_size[ i ];
 
                 threadPool.emplace_back(
                         thread(
-                                [ v, &randomValues, A, &I ]()
+                                [ start, end, A, randomValues, &I, &m ]()
                                 {
-                                    bool add = true;
-
-                                    for ( int u = 0; u < A[ v ].size(); u++ )
+                                    for ( int v = start; v < end; v++ )
                                     {
-                                        if ( randomValues[ v ] <= randomValues[ A[ v ][ u ]] )
+                                        if ( A[ v ].size() == 0 )
+                                            continue;
+
+                                        bool add = true;
+
+                                        for ( int u = 0; u < A[ v ].size(); u++ )
                                         {
-                                            add = false;
-                                            break;
+                                            if ( randomValues[ v ] <= randomValues[ A[ v ][ u ]] )
+                                            {
+                                                add = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if ( add )
+                                        {
+                                            {
+                                                unique_lock<mutex> l{m};
+                                                I.emplace_back( v );
+                                            }
                                         }
                                     }
-
-                                    if ( add )
-                                        I.push_back( v );
                                 }
                         )
                 );
@@ -100,30 +132,63 @@ public:
             for ( auto &t : threadPool )
                 t.join();
 
-            // setting the minimum color for all the vertices of the independent set
+            threadPool.clear();
+
+            // handling threads according to the number of vertices in the independent set
+            int duration2 = I.size() / NTHREAD;
+            int NTHREAD2 = NTHREAD;
+            if ( NTHREAD2 > I.size())
+            {
+                duration2 = 1;
+                NTHREAD2 = I.size();
+            }
+
+            vector<int> threads_size2( NTHREAD2, duration2 );
+
+            // assigning remaining vertex to the corresponding thread
+            if ( NTHREAD2 * duration2 < I.size())
+            {
+                int n = I.size() - ( NTHREAD2 * duration2 );
+                for ( int i = 0; i < n; i++ )
+                    threads_size2[ i ]++;
+            }
+
             std::vector<std::thread> threadPool2;
 
-            for ( int vp_index = 0; vp_index < I.size(); vp_index++ )
+            // setting the minimum color for all the vertices of the independent set
+            end = 0;
+            for ( int i = 0; i < NTHREAD2; i++ )
             {
+                int start = end;
+                end += threads_size2[ i ];
+
                 threadPool2.emplace_back(
                         thread(
-                                [ vp_index, &colors, A, I, &color ]()
+                                [ start, end, A, I, &colors, &color, &m ]()
                                 {
-                                    int vp = I[ vp_index ];
-                                    int c = -1;
-
-                                    for ( int u = 0; u < A[ vp ].size(); u++ )
+                                    for ( int vp_index = start; vp_index < end; vp_index++ )
                                     {
-                                        if ( colors[ A[ vp ][ u ]] > c )
+                                        int vp = I[ vp_index ];
+                                        int c = -1;
+
+                                        for ( int u = 0; u < A[ vp ].size(); u++ )
                                         {
-                                            c = colors[ A[ vp ][ u ]];
+                                            if ( colors[ A[ vp ][ u ]] > c )
+                                            {
+                                                c = colors[ A[ vp ][ u ]];
+                                            }
+                                        }
+
+                                        colors[ vp ] = c + 1;
+
+                                        if ( c + 1 > color )
+                                        {
+                                            {
+                                                unique_lock<mutex> l{m};
+                                                color = c + 1;
+                                            }
                                         }
                                     }
-
-                                    colors[ vp ] = c + 1;
-
-                                    if ( c + 1 > color )
-                                        color = c + 1;
                                 }
                         )
                 );
@@ -131,6 +196,8 @@ public:
 
             for ( auto &t2 : threadPool2 )
                 t2.join();
+
+            threadPool2.clear();
 
             // remove already inserted vertex from the graph
             for ( int vindex = 0; vindex < I.size(); vindex++ )
@@ -140,6 +207,9 @@ public:
             }
 
             vs -= I.size();
+
+            I.clear();
+            threads_size2.clear();
         }
 
         cout << endl << "Used color: " << color + 1 << endl;
@@ -165,7 +235,9 @@ void printElapsedTime( chrono::steady_clock::time_point start, chrono::steady_cl
 
 int main()
 {
-    srand(time(0));
+    srand( time( 0 ));
+
+    NTHREAD = thread::hardware_concurrency();
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
