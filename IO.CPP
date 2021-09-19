@@ -124,6 +124,124 @@ int state = 0, fmt = 0, ncon = 1, i;
 	return 1;
  
 }
+int readingGra(FILE* fp,  int **pxadj, int **padj, double **pewghts, int **pvwghts,int* pnov){
+	int state = 0, fmt = 0, ncon = 1, i;
+	int numVertices = -1, vcount = 0, jv;
+	 int numEdges = -1, ecount = 0;
+	char *temp, *graphLine =  (char *) malloc(sizeof(char)*100000+1);
+	//Number of Edges
+	while(fgets(graphLine, 10000000, fp) != NULL) {
+		for(i = 0; i < (int) strlen(graphLine); i++) {
+			char c = graphLine[i];
+			if(c != ' ' && c != '\t' && c != '\n') {
+				break;
+			}
+		}
+		//numEdges , fmt,temp ,padj , pewghts
+		if(graphLine[0] == '#') {
+			continue;
+		} else if(state == 0) {
+			//Reading the first line
+			temp = strtok(graphLine, " \t\n");
+			numVertices = atoi(temp);
+			temp = strtok(NULL, " \t\n");
+            state = 1;
+		} else {
+			temp = strtok(graphLine, " \t\n");
+			while(temp != NULL) {
+				temp = strtok(NULL, " \t\n");
+				if ((temp != NULL) == 1){
+					if(atoi(temp)>0)
+					numEdges++;
+				}  
+			}
+		}
+	}
+	if(numEdges>= 0)
+	numEdges++;
+	rewind(fp);
+	//
+	state = 0;
+	while(fgets(graphLine, 1000000, fp) != NULL) {
+	
+		for(i = 0; i < (int) strlen(graphLine); i++) {
+			char c = graphLine[i];
+			if(c != ' ' && c != '\t' && c != '\n') {
+				break;
+			}
+		}
+		if(graphLine[0] == '#') {
+			continue;
+		} else if(state == 0) {
+			//Reading the first line
+				printf(graphLine);
+			*pnov = numVertices;
+			(*pxadj) = ( int*)malloc(sizeof( int) * (numVertices+1));
+			(*pxadj)[0] = 0;
+			(*pvwghts)  = (int*)malloc(sizeof(int) * numVertices);
+
+			(*padj) = (int*)malloc(sizeof(int)  * numEdges);
+			(*pewghts) = (double*)malloc(sizeof(double)   * numEdges);
+            state = 1;
+		} else {
+			
+			//Following 
+			if(vcount == numVertices) {
+				printf("Error: file contains more than %ld lines\n", (long int)numVertices);
+				return -1;
+			}
+			temp = strtok(graphLine, " \t\n");
+			if (fmt >= 100) {
+				temp = strtok(NULL, " \t\n");
+			}
+			if (fmt % 100 >= 10) {
+				(*pvwghts)[vcount] = atoi(temp);
+				for (i = 1; i < ncon; i++) {
+					temp = strtok(NULL, " \t\n");
+				}
+			} else {
+				(*pvwghts)[vcount] = 1;
+			}
+			temp = strtok(NULL, " \t\n");
+			while(temp != NULL && temp[0]!='#') {
+				
+				if(ecount == 2 * numEdges) {
+					printf("Error: file contains more than %ld edges\n", (long int)numEdges);
+					return -1;
+				}
+				(*padj)[ecount] = atoi(temp) - 1; /* ids start from 1 in the graph */
+				temp = strtok(NULL, " \t\n");
+				if(fmt % 10 == 1) {
+					(*pewghts)[ecount] = atoi(temp);
+					temp = strtok(NULL, " \t\n");
+				} else {
+					(*pewghts)[ecount] = 1;
+				}
+				if((*pewghts)[ecount] < 0) {
+					printf("negative edge weight %lf between %ld-%ld.\n", (*pewghts)[ecount], (long int)vcount, (long int)((*padj)[ecount]));
+					return -1;
+				}
+	            ecount++;
+			}
+			vcount++;
+			(*pxadj)[vcount] = ecount;
+		}
+	}
+	if(vcount != numVertices) {
+		printf("number of vertices do not match %ld %ld\n", (long int)numVertices, (long int)vcount);
+		return -1;
+	}
+	if(ecount != 2 * numEdges) {
+		printf("number of edges do not match %ld %ld: realloc memory appropriately\n", (long int)ecount, (long int)(2 * numEdges));
+		//(*padj) = (int*)realloc((*padj), sizeof(int) * ecount);
+		//(*pewghts) = (double*)realloc((*pewghts) , sizeof(double) * ecount);
+	}
+	for(jv = 0; jv < vcount; jv++) {
+		qsort((*padj) + (*pxadj)[jv], (*pxadj)[jv+1] - (*pxadj)[jv], sizeof(int), cmp);
+	}
+
+	return 1;
+}
 int read_graph(char* filename,  int **xadj, int **adj,double **ewghts, int **vwghts,int* nov) {
   	FILE  *fp;
     fp = fopen(filename, "r");
@@ -137,6 +255,12 @@ int read_graph(char* filename,  int **xadj, int **adj,double **ewghts, int **vwg
 	return -1;}
 	 if(strcmp(dot,".graph") == 0){
     	  if(readingGraph(fp, xadj, adj, ewghts, vwghts, nov) == -1) {
+    		  printf("error in reading the file\n");
+    		  fclose(fp);
+    	      return -1;
+    	  }
+      }else if(strcmp(dot,".gra") == 0){
+    	  if(readingGra(fp, xadj, adj, ewghts, vwghts, nov) == -1) {
     		  printf("error in reading the file\n");
     		  fclose(fp);
     	      return -1;
