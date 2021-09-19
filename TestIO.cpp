@@ -601,13 +601,13 @@ int main(int argc, char* argv[])
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
     // ifstream file("/Users/rgg_n_2_16_s0.graph");
-    int* row_ptr;
-    int* col_ind;
+    int* row;
+    int* col;
     double* ewghts;
     int* vwghts;
     int nov;
     // Graph reading;
-    if (read_graph(argv[1], &row_ptr, &col_ind, &ewghts, &vwghts, &nov) == -1)
+    if (read_graph(argv[1], &row, &col, &ewghts, &vwghts, &nov) == -1)
     {
         printf(" graph reading error...\n");
         return 1;
