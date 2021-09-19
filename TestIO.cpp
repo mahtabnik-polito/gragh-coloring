@@ -13,7 +13,7 @@
 using namespace std;
 
 int NTHREAD = 0;
-
+int V, E;
 class Graph
 {
     int V;
@@ -359,8 +359,10 @@ int readingGraph(FILE* fp, int** pxadj, int** padj, double** pewghts, int** pvwg
             //Reading the first line
             temp = strtok(graphLine, " \t\n");
             numVertices = atoi(temp);
+            V = numVertices;
             temp = strtok(NULL, " \t\n");
             numEdges = atoi(temp);
+            E = numEdges;
             temp = strtok(NULL, " \t\n");
             if (temp != NULL) {
                 fmt = atoi(temp);
@@ -474,6 +476,8 @@ int readingGra(FILE* fp, int** pxadj, int** padj, double** pewghts, int** pvwght
         numEdges++;
     rewind(fp);
     //
+    V = numVertices;
+    E = numEdges;
     state = 0;
     while (fgets(graphLine, 1000000, fp) != NULL) {
 
@@ -588,6 +592,7 @@ int read_graph(char* filename, int** xadj, int** adj, double** ewghts, int** vwg
     fclose(fp);
     return 1;
 }
+
 int main(int argc, char* argv[])
 {
     srand(time(0));
@@ -596,7 +601,7 @@ int main(int argc, char* argv[])
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-   // ifstream file("/Users/rgg_n_2_16_s0.graph");
+    // ifstream file("/Users/rgg_n_2_16_s0.graph");
     int* row_ptr;
     int* col_ind;
     double* ewghts;
@@ -608,8 +613,8 @@ int main(int argc, char* argv[])
         printf(" graph reading error...\n");
         return 1;
     }
+    printf("number of V is %d and edges is %d", V, E);
 
-   
 
     return 0;
 }
