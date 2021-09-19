@@ -552,10 +552,9 @@ int readingGra(FILE* fp, int** pxadj, int** padj, double** pewghts, int** pvwght
         printf("number of vertices do not match %ld %ld\n", (long int)numVertices, (long int)vcount);
         return -1;
     }
-    if (ecount != 2 * numEdges) {
+    if (ecount != numEdges) {
         printf("number of edges do not match %ld %ld: realloc memory appropriately\n", (long int)ecount, (long int)(2 * numEdges));
-        //(*padj) = (int*)realloc((*padj), sizeof(int) * ecount);
-        //(*pewghts) = (double*)realloc((*pewghts) , sizeof(double) * ecount);
+      
     }
     for (jv = 0; jv < vcount; jv++) {
         qsort((*padj) + (*pxadj)[jv], (*pxadj)[jv + 1] - (*pxadj)[jv], sizeof(int), cmp);
