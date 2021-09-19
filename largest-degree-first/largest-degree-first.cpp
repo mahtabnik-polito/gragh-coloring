@@ -12,6 +12,7 @@
 using namespace std;
 
 int NTHREAD = 0;
+int V, E;
 
 class Graph
 {
@@ -32,6 +33,15 @@ public:
     ~Graph()
     {
         delete[] graph;
+    }
+
+    void setV( int V )
+    {
+        delete[] graph;
+
+        this->V = V;
+        this->graph = new vector<int>[V + 1];
+        this->vs = this->V;
     }
 
     void addEdge( int x, int y )
@@ -225,6 +235,16 @@ public:
             I.clear();
         }
 
+        // check wether there are vertices not colored due to error in graph
+        for ( int v = 1; v <= V; v++ )
+        {
+            if ( colors[ v ] == -1 )
+            {
+                color ++;
+                colors[ v ] = color;
+            }
+        }
+
         cout << endl << "Used color: " << color + 1 << endl;
 
         return colors;
@@ -246,7 +266,333 @@ void printElapsedTime( chrono::steady_clock::time_point start, chrono::steady_cl
             chrono::duration_cast<chrono::nanoseconds>( end - start ).count());
 }
 
-int main()
+//IO FILES
+int cmp( const void *a, const void *b )
+{
+    const int *ia = ( const int * ) a;
+    const int *ib = ( const int * ) b;
+    return *ia - *ib;
+}
+
+int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwghts, int *pnov, Graph *G )
+{
+
+
+    int state = 0, fmt = 0, ncon = 1, i;
+    int numVertices = -1, vcount = 0, jv;
+    int numEdges = -1, ecount = 0;
+    char *temp, *graphLine = ( char * ) malloc( sizeof( char ) * 1000000 + 1 );
+    while ( fgets( graphLine, 1000000, fp ) != NULL )
+    {
+        for ( i = 0; i < ( int ) strlen( graphLine ); i++ )
+        {
+            char c = graphLine[ i ];
+            if ( c != ' ' && c != '\t' && c != '\n' )
+            {
+                break;
+            }
+        }
+        if ( graphLine[ 0 ] == '%' )
+        {
+            continue;
+        } else if ( state == 0 )
+        {
+            //Reading the first line
+            temp = strtok( graphLine, " \t\n" );
+            numVertices = atoi( temp );
+
+            // creating graph
+            G->setV( numVertices );
+
+            V = numVertices;
+            temp = strtok( NULL, " \t\n" );
+            numEdges = atoi( temp );
+            E = numEdges;
+            temp = strtok( NULL, " \t\n" );
+            if ( temp != NULL )
+            {
+                fmt = atoi( temp );
+                temp = strtok( NULL, " \t\n" );
+                if ( temp != NULL ) { ncon = atoi( temp ); }
+            }
+            *pnov = numVertices;
+            ( *pxadj ) = ( int * ) malloc( sizeof( int ) * ( numVertices + 1 ));
+            ( *pxadj )[ 0 ] = 0;
+            ( *pvwghts ) = ( int * ) malloc( sizeof( int ) * numVertices );
+
+            ( *padj ) = ( int * ) malloc( sizeof( int ) * 2 * numEdges );
+            ( *pewghts ) = ( double * ) malloc( sizeof( double ) * 2 * numEdges );
+            state = 1;
+        } else
+        {
+            //Following
+            if ( vcount == numVertices )
+            {
+                printf( "Error: file contains more than %ld lines\n", ( long int ) numVertices );
+                return -1;
+            }
+            temp = strtok( graphLine, " \t\n" );
+            if ( fmt >= 100 )
+            {
+                temp = strtok( NULL, " \t\n" );
+            }
+            if ( fmt % 100 >= 10 )
+            {
+                ( *pvwghts )[ vcount ] = atoi( temp );
+                for ( i = 1; i < ncon; i++ )
+                {
+                    temp = strtok( NULL, " \t\n" );
+                }
+            } else
+            {
+                ( *pvwghts )[ vcount ] = 1;
+            }
+            while ( temp != NULL )
+            {
+                if ( ecount == 2 * numEdges )
+                {
+                    printf( "Error: file contains more than %ld edges\n", ( long int ) numEdges );
+                    return -1;
+                }
+
+                G->addEdge( vcount + 1, atoi( temp ));
+
+                ( *padj )[ ecount ] = atoi( temp ) - 1; /* ids start from 1 in the graph */
+                temp = strtok( NULL, " \t\n" );
+                if ( fmt % 10 == 1 )
+                {
+                    ( *pewghts )[ ecount ] = atoi( temp );
+                    temp = strtok( NULL, " \t\n" );
+                } else
+                {
+                    ( *pewghts )[ ecount ] = 1;
+                }
+                if (( *pewghts )[ ecount ] < 0 )
+                {
+                    printf( "negative edge weight %lf between %ld-%ld.\n", ( *pewghts )[ ecount ], ( long int ) vcount,
+                            ( long int ) (( *padj )[ ecount ] ));
+                    return -1;
+                }
+                ecount++;
+            }
+            vcount++;
+            ( *pxadj )[ vcount ] = ecount;
+        }
+    }
+    if ( vcount != numVertices )
+    {
+        printf( "number of vertices do not match %ld %ld\n", ( long int ) numVertices, ( long int ) vcount );
+        return -1;
+    }
+    if ( ecount != 2 * numEdges )
+    {
+        printf( "number of edges do not match %ld %ld: realloc memory appropriately\n", ( long int ) ecount,
+                ( long int ) ( 2 * numEdges ));
+        ( *padj ) = ( int * ) realloc(( *padj ), sizeof( int ) * ecount );
+        ( *pewghts ) = ( double * ) realloc(( *pewghts ), sizeof( double ) * ecount );
+    }
+    for ( jv = 0; jv < vcount; jv++ )
+    {
+        qsort(( *padj ) + ( *pxadj )[ jv ], ( *pxadj )[ jv + 1 ] - ( *pxadj )[ jv ], sizeof( int ), cmp );
+    }
+
+    return 1;
+
+}
+
+int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwghts, int *pnov, Graph *G )
+{
+    int state = 0, fmt = 0, ncon = 1, i;
+    int numVertices = -1, vcount = 0, jv;
+    int numEdges = -1, ecount = 0;
+    char *temp, *graphLine = ( char * ) malloc( sizeof( char ) * 100000 + 1 );
+    //Number of Edges
+    while ( fgets( graphLine, 10000000, fp ) != NULL )
+    {
+        for ( i = 0; i < ( int ) strlen( graphLine ); i++ )
+        {
+            char c = graphLine[ i ];
+            if ( c != ' ' && c != '\t' && c != '\n' )
+            {
+                break;
+            }
+        }
+        //numEdges , fmt,temp ,padj , pewghts
+        if ( graphLine[ 0 ] == '#' )
+        {
+            continue;
+        } else if ( state == 0 )
+        {
+            //Reading the first line
+            temp = strtok( graphLine, " \t\n" );
+            numVertices = atoi( temp );
+
+            G->setV( numVertices );
+
+            temp = strtok( NULL, " \t\n" );
+            state = 1;
+        } else
+        {
+            temp = strtok( graphLine, " \t\n" );
+            while ( temp != NULL )
+            {
+                temp = strtok( NULL, " \t\n" );
+                if (( temp != NULL ) == 1 )
+                {
+                    if ( atoi( temp ) > 0 )
+                        numEdges++;
+                }
+            }
+        }
+    }
+    if ( numEdges >= 0 )
+        numEdges++;
+    rewind( fp );
+    //
+    V = numVertices;
+    E = numEdges;
+    state = 0;
+    while ( fgets( graphLine, 1000000, fp ) != NULL )
+    {
+
+        for ( i = 0; i < ( int ) strlen( graphLine ); i++ )
+        {
+            char c = graphLine[ i ];
+            if ( c != ' ' && c != '\t' && c != '\n' )
+            {
+                break;
+            }
+        }
+        if ( graphLine[ 0 ] == '#' )
+        {
+            continue;
+        } else if ( state == 0 )
+        {
+            //Reading the first line
+            printf( graphLine );
+            *pnov = numVertices;
+            ( *pxadj ) = ( int * ) malloc( sizeof( int ) * ( numVertices + 1 ));
+            ( *pxadj )[ 0 ] = 0;
+            ( *pvwghts ) = ( int * ) malloc( sizeof( int ) * numVertices );
+
+            ( *padj ) = ( int * ) malloc( sizeof( int ) * numEdges );
+            ( *pewghts ) = ( double * ) malloc( sizeof( double ) * numEdges );
+            state = 1;
+        } else
+        {
+
+            //Following
+            if ( vcount == numVertices )
+            {
+                printf( "Error: file contains more than %ld lines\n", ( long int ) numVertices );
+                return -1;
+            }
+            temp = strtok( graphLine, " \t\n" );
+            if ( fmt >= 100 )
+            {
+                temp = strtok( NULL, " \t\n" );
+            }
+            if ( fmt % 100 >= 10 )
+            {
+                ( *pvwghts )[ vcount ] = atoi( temp );
+                for ( i = 1; i < ncon; i++ )
+                {
+                    temp = strtok( NULL, " \t\n" );
+                }
+            } else
+            {
+                ( *pvwghts )[ vcount ] = 1;
+            }
+            temp = strtok( NULL, " \t\n" );
+            while ( temp != NULL && temp[ 0 ] != '#' )
+            {
+
+                if ( ecount == 2 * numEdges )
+                {
+                    printf( "Error: file contains more than %ld edges\n", ( long int ) numEdges );
+                    return -1;
+                }
+
+                G->addEdge( vcount + 1, atoi( temp ));
+
+                ( *padj )[ ecount ] = atoi( temp ) - 1; /* ids start from 1 in the graph */
+                temp = strtok( NULL, " \t\n" );
+                if ( fmt % 10 == 1 )
+                {
+                    ( *pewghts )[ ecount ] = atoi( temp );
+                    temp = strtok( NULL, " \t\n" );
+                } else
+                {
+                    ( *pewghts )[ ecount ] = 1;
+                }
+                if (( *pewghts )[ ecount ] < 0 )
+                {
+                    printf( "negative edge weight %lf between %ld-%ld.\n", ( *pewghts )[ ecount ], ( long int ) vcount,
+                            ( long int ) (( *padj )[ ecount ] ));
+                    return -1;
+                }
+                ecount++;
+            }
+            vcount++;
+            ( *pxadj )[ vcount ] = ecount;
+        }
+    }
+    if ( vcount != numVertices )
+    {
+        printf( "number of vertices do not match %ld %ld\n", ( long int ) numVertices, ( long int ) vcount );
+        return -1;
+    }
+    if ( ecount != numEdges )
+    {
+        printf( "number of edges do not match %ld %ld: realloc memory appropriately\n", ( long int ) ecount,
+                ( long int ) ( 2 * numEdges ));
+
+    }
+    for ( jv = 0; jv < vcount; jv++ )
+    {
+        qsort(( *padj ) + ( *pxadj )[ jv ], ( *pxadj )[ jv + 1 ] - ( *pxadj )[ jv ], sizeof( int ), cmp );
+    }
+
+    return 1;
+}
+
+int read_graph( char *filename, int **xadj, int **adj, double **ewghts, int **vwghts, int *nov, Graph *G )
+{
+    FILE *fp;
+    fp = fopen( filename, "r" );
+    if ( fp == NULL )
+    {
+        printf( "%s: file does not exist\n", filename );
+        return -1;
+    }
+    //get file extension
+    const char *dot = strrchr( filename, '.' );
+    if ( !dot || dot == filename )
+    {
+        return -1;
+    }
+    if ( strcmp( dot, ".graph" ) == 0 )
+    {
+        if ( readingGraph( fp, xadj, adj, ewghts, vwghts, nov, G ) == -1 )
+        {
+            printf( "error in reading the file\n" );
+            fclose( fp );
+            return -1;
+        }
+    } else if ( strcmp( dot, ".gra" ) == 0 )
+    {
+        if ( readingGra( fp, xadj, adj, ewghts, vwghts, nov, G ) == -1 )
+        {
+            printf( "error in reading the file\n" );
+            fclose( fp );
+            return -1;
+        }
+    }
+    fclose( fp );
+    return 1;
+}
+
+int main( int argc, char *argv[] )
 {
     srand( time( 0 ));
 
@@ -254,38 +600,24 @@ int main()
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/rgg_n_2_15_s0.graph" );
+    int *row;
+    int *col;
+    double *ewghts;
+    int *vwghts;
+    int nov;
 
-    if ( !file.is_open())
-        cout << "failed to open file\n";
-
-    string line;
-    bool firstRow = true;
-    int V = 1, E;
-    Graph *G;
-    int cv = 1; // current vertex
+    Graph *G = new Graph( 0 );
 
     start_time = getCurrentClock();
 
-    while ( getline( file, line ) && cv <= V )
+    // Graph reading;
+    if ( read_graph( argv[ 1 ], &row,
+                     &col, &ewghts, &vwghts, &nov, ref( G )) == -1 )
     {
-        // cout << line << endl;
-        stringstream sin( line );
-
-        if ( firstRow )
-        {
-            firstRow = false;
-            sin >> V >> E;
-            G = new Graph( V );
-        } else
-        {
-            int e;
-            while ( sin >> e )
-                G->addEdge( cv, e );
-
-            cv++;
-        }
+        printf( " graph reading error...\n" );
+        return 1;
     }
+    printf( "number of V is %d and edges is %d", V, E );
 
     end_time = getCurrentClock();
 

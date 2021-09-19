@@ -626,7 +626,6 @@ int main( int argc, char *argv[] )
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-    // ifstream file("/Users/rgg_n_2_16_s0.graph");
     int *row;
     int *col;
     double *ewghts;
