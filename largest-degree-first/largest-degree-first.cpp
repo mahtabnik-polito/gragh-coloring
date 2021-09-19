@@ -140,6 +140,14 @@ public:
 
             threadPool.clear();
 
+            if ( I.empty())
+            {
+                // terminate the program because all colors are found and there is an error in the graph
+                //cout << "vs: " << vs << endl;
+                vs = 0;
+                break;
+            }
+
             // setting the minimum color for all the vertices of the independent set
             std::vector<std::thread> threadPool2;
 
@@ -246,7 +254,7 @@ int main()
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/test1.graph" );
+    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/rgg_n_2_15_s0.graph" );
 
     if ( !file.is_open())
         cout << "failed to open file\n";

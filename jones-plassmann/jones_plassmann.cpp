@@ -62,7 +62,6 @@ public:
         for ( int i = 0; i <= V; i++ )
             randomValues.push_back(( int ) rand());
 
-
         vector<int> *A = graph;
 
         // handling threads according to the number of vertices
@@ -134,6 +133,14 @@ public:
 
             threadPool.clear();
 
+            if ( I.empty())
+            {
+                // terminate the program because all colors are found and there is an error in the graph
+                //cout << "vs: " << vs << endl;
+                vs = 0;
+                break;
+            }
+
             // handling threads according to the number of vertices in the independent set
             int duration2 = I.size() / NTHREAD;
             int NTHREAD2 = NTHREAD;
@@ -202,7 +209,7 @@ public:
             // remove already inserted vertex from the graph
             for ( int vindex = 0; vindex < I.size(); vindex++ )
             {
-                A[ I[ vindex ]].erase( A[ I[ vindex ]].begin(), A[ I[ vindex ]].end());
+                A[ I[ vindex ]].clear();
                 randomValues[ I[ vindex ]] = 0;
             }
 

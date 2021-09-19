@@ -122,20 +122,18 @@ public:
 
                     threadPool.emplace_back(
                             thread(
-                                    thread(
-                                            [ start, end, &Gp, w, S, &weights, &sizes ]()
-                                            {
-                                                for ( int vp_index = start; vp_index < end; vp_index++ )
-                                                {
-                                                    int v = S[ vp_index ];
-                                                    weights[ v ] = w;
-                                                    sizes[ v ] = 0;
+                                    [ start, end, &Gp, w, S, &weights, &sizes ]()
+                                    {
+                                        for ( int vp_index = start; vp_index < end; vp_index++ )
+                                        {
+                                            int v = S[ vp_index ];
+                                            weights[ v ] = w;
+                                            sizes[ v ] = 0;
 
-                                                    for ( int u = 0; u < Gp[ v ].size(); u++ )
-                                                        sizes[ Gp[ v ][ u ]]--;
-                                                }
-                                            }
-                                    )
+                                            for ( int u = 0; u < Gp[ v ].size(); u++ )
+                                                sizes[ Gp[ v ][ u ]]--;
+                                        }
+                                    }
                             )
                     );
                 }
@@ -148,6 +146,11 @@ public:
                 _V -= S.size();
                 w++;
                 S.clear();
+            }
+            else
+            {
+                // all weights have already been set
+                _V = 0;
             }
 
             k++;
@@ -224,6 +227,14 @@ public:
                 t.join();
 
             threadPool.clear();
+
+            if ( I.empty())
+            {
+                // terminate the program because all colors are found and there is an error in the graph
+                //cout << "vs: " << vs << endl;
+                vs = 0;
+                break;
+            }
 
             // handling threads according to the number of vertices in the independent set
             int duration2 = I.size() / NTHREAD;
@@ -329,7 +340,7 @@ int main()
 
     chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
-    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/test2.graph" );
+    ifstream file( "/Users/giannicito/Documents/SDP/Course Material/project/gragh-coloring/data/rgg_n_2_15_s0.graph" );
 
     if ( !file.is_open())
         cout << "failed to open file\n";

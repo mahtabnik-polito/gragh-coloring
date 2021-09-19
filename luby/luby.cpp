@@ -187,7 +187,8 @@ public:
 
             if ( M_prim.size() == 0 )
             {
-                // terminate the program because all colors are found
+                // terminate the program because all colors are found and there is an error in the graph
+                //cout << "vs: " << vs << endl;
                 vs = 0;
                 break;
             }
