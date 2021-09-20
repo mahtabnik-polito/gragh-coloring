@@ -142,7 +142,7 @@ int cmp( const void *a, const void *b )
     return *ia - *ib;
 }
 
-int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwghts, int *pnov, Graph *G )
+int readingGraph( FILE *fp, Graph *G )
 {
 
 
@@ -183,13 +183,6 @@ int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvw
                 temp = strtok( NULL, " \t\n" );
                 if ( temp != NULL ) { ncon = atoi( temp ); }
             }
-            *pnov = numVertices;
-            ( *pxadj ) = ( int * ) malloc( sizeof( int ) * ( numVertices + 1 ));
-            ( *pxadj )[ 0 ] = 0;
-            ( *pvwghts ) = ( int * ) malloc( sizeof( int ) * numVertices );
-
-            ( *padj ) = ( int * ) malloc( sizeof( int ) * 2 * numEdges );
-            ( *pewghts ) = ( double * ) malloc( sizeof( double ) * 2 * numEdges );
             state = 1;
         } else
         {
@@ -206,15 +199,12 @@ int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvw
             }
             if ( fmt % 100 >= 10 )
             {
-                ( *pvwghts )[ vcount ] = atoi( temp );
                 for ( i = 1; i < ncon; i++ )
                 {
                     temp = strtok( NULL, " \t\n" );
                 }
-            } else
-            {
-                ( *pvwghts )[ vcount ] = 1;
             }
+
             while ( temp != NULL )
             {
                 if ( ecount == 2 * numEdges )
@@ -225,26 +215,15 @@ int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvw
 
                 G->addEdge( vcount + 1, atoi( temp ));
 
-                ( *padj )[ ecount ] = atoi( temp ) - 1; /* ids start from 1 in the graph */
                 temp = strtok( NULL, " \t\n" );
                 if ( fmt % 10 == 1 )
                 {
-                    ( *pewghts )[ ecount ] = atoi( temp );
                     temp = strtok( NULL, " \t\n" );
-                } else
-                {
-                    ( *pewghts )[ ecount ] = 1;
                 }
-                if (( *pewghts )[ ecount ] < 0 )
-                {
-                    printf( "negative edge weight %lf between %ld-%ld.\n", ( *pewghts )[ ecount ], ( long int ) vcount,
-                            ( long int ) (( *padj )[ ecount ] ));
-                    return -1;
-                }
+
                 ecount++;
             }
             vcount++;
-            ( *pxadj )[ vcount ] = ecount;
         }
     }
     if ( vcount != numVertices )
@@ -256,19 +235,13 @@ int readingGraph( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvw
     {
         printf( "number of edges do not match %ld %ld: realloc memory appropriately\n", ( long int ) ecount,
                 ( long int ) ( 2 * numEdges ));
-        ( *padj ) = ( int * ) realloc(( *padj ), sizeof( int ) * ecount );
-        ( *pewghts ) = ( double * ) realloc(( *pewghts ), sizeof( double ) * ecount );
-    }
-    for ( jv = 0; jv < vcount; jv++ )
-    {
-        qsort(( *padj ) + ( *pxadj )[ jv ], ( *pxadj )[ jv + 1 ] - ( *pxadj )[ jv ], sizeof( int ), cmp );
     }
 
     return 1;
 
 }
 
-int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwghts, int *pnov, Graph *G )
+int readingGra( FILE *fp, Graph *G )
 {
     int state = 0, fmt = 0, ncon = 1, i;
     int numVertices = -1, vcount = 0, jv;
@@ -338,13 +311,6 @@ int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwgh
         {
             //Reading the first line
             printf( graphLine );
-            *pnov = numVertices;
-            ( *pxadj ) = ( int * ) malloc( sizeof( int ) * ( numVertices + 1 ));
-            ( *pxadj )[ 0 ] = 0;
-            ( *pvwghts ) = ( int * ) malloc( sizeof( int ) * numVertices );
-
-            ( *padj ) = ( int * ) malloc( sizeof( int ) * numEdges );
-            ( *pewghts ) = ( double * ) malloc( sizeof( double ) * numEdges );
             state = 1;
         } else
         {
@@ -362,19 +328,15 @@ int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwgh
             }
             if ( fmt % 100 >= 10 )
             {
-                ( *pvwghts )[ vcount ] = atoi( temp );
                 for ( i = 1; i < ncon; i++ )
                 {
                     temp = strtok( NULL, " \t\n" );
                 }
-            } else
-            {
-                ( *pvwghts )[ vcount ] = 1;
             }
+
             temp = strtok( NULL, " \t\n" );
             while ( temp != NULL && temp[ 0 ] != '#' )
             {
-
                 if ( ecount == 2 * numEdges )
                 {
                     printf( "Error: file contains more than %ld edges\n", ( long int ) numEdges );
@@ -383,26 +345,15 @@ int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwgh
 
                 G->addEdge( vcount + 1, atoi( temp ));
 
-                ( *padj )[ ecount ] = atoi( temp ) - 1; /* ids start from 1 in the graph */
                 temp = strtok( NULL, " \t\n" );
                 if ( fmt % 10 == 1 )
                 {
-                    ( *pewghts )[ ecount ] = atoi( temp );
                     temp = strtok( NULL, " \t\n" );
-                } else
-                {
-                    ( *pewghts )[ ecount ] = 1;
                 }
-                if (( *pewghts )[ ecount ] < 0 )
-                {
-                    printf( "negative edge weight %lf between %ld-%ld.\n", ( *pewghts )[ ecount ], ( long int ) vcount,
-                            ( long int ) (( *padj )[ ecount ] ));
-                    return -1;
-                }
+
                 ecount++;
             }
             vcount++;
-            ( *pxadj )[ vcount ] = ecount;
         }
     }
     if ( vcount != numVertices )
@@ -416,15 +367,11 @@ int readingGra( FILE *fp, int **pxadj, int **padj, double **pewghts, int **pvwgh
                 ( long int ) ( 2 * numEdges ));
 
     }
-    for ( jv = 0; jv < vcount; jv++ )
-    {
-        qsort(( *padj ) + ( *pxadj )[ jv ], ( *pxadj )[ jv + 1 ] - ( *pxadj )[ jv ], sizeof( int ), cmp );
-    }
 
     return 1;
 }
 
-int read_graph( char *filename, int **xadj, int **adj, double **ewghts, int **vwghts, int *nov, Graph *G )
+int read_graph( char *filename, Graph *G )
 {
     FILE *fp;
     fp = fopen( filename, "r" );
@@ -441,7 +388,7 @@ int read_graph( char *filename, int **xadj, int **adj, double **ewghts, int **vw
     }
     if ( strcmp( dot, ".graph" ) == 0 )
     {
-        if ( readingGraph( fp, xadj, adj, ewghts, vwghts, nov, G ) == -1 )
+        if ( readingGraph( fp, G ) == -1 )
         {
             printf( "error in reading the file\n" );
             fclose( fp );
@@ -449,7 +396,7 @@ int read_graph( char *filename, int **xadj, int **adj, double **ewghts, int **vw
         }
     } else if ( strcmp( dot, ".gra" ) == 0 )
     {
-        if ( readingGra( fp, xadj, adj, ewghts, vwghts, nov, G ) == -1 )
+        if ( readingGra( fp, G ) == -1 )
         {
             printf( "error in reading the file\n" );
             fclose( fp );
@@ -462,22 +409,14 @@ int read_graph( char *filename, int **xadj, int **adj, double **ewghts, int **vw
 
 int main( int argc, char *argv[] )
 {
-    chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
-
-    int *row;
-    int *col;
-    double *ewghts;
-    int *vwghts;
-    int nov;
+    chrono::steady_clock::time_point start_time, start_time_coloring, end_time;ì
 
     Graph *G = new Graph( 0 );
 
     start_time = getCurrentClock();
 
     // Graph reading;
-    if ( read_graph( argv[ 1 ],
-                     &row,
-                     &col, &ewghts, &vwghts, &nov, ref( G )) == -1 )
+    if ( read_graph( argv[ 1 ], ref( G )) == -1 )
     {
         printf( " graph reading error...\n" );
         return 1;
