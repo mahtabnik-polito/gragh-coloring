@@ -32,6 +32,7 @@ Instruction to run the Luby, Smallest degree last, Jones Plassmann and Largest d
     cout<< "Used Physical Memory By current Process: " <<physMemUsedByMe <<"B"<<endl;
     
 If the classes had any errors related to the Mutex library, please import the library using:
-    "#include <mutex> "
+
+    #include <mutex>
     
 
