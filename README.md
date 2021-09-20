@@ -1,4 +1,4 @@
-# gragh-coloring
+# Graph Coloring Project (Q1)
 In this project we chose 6 algorithms to implement on CPU in multi-threaded and greedy modes. 
 The algorithms are: Sequential Greedy, Luby ( one approach for the Maximal Independent Set ) , Distance one , Smallest degree last , Jones- Plassmann and Largest degree first
 We implemented and tested the Distance one algorithm on the Ubuntu Machine and the other algorithms were implemented and tested on both MAC OS and Windows 10.
