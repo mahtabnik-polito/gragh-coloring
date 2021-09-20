@@ -92,7 +92,7 @@ https://www.researchgate.net/publication/2296563_A_Comparison_of_Parallel_Graph_
 
 in order to test the algorithm with different number of threads, we set the value NTHREAD in the main method of the programs equal to 1,2,4,8 and analyzed the related result.
 
-#Instruction to run Distance - One project: ( it is also available in the Distance-1 folder)
+## Instruction to run Distance - One project: ( it is also available in the Distance-1 folder)
 
 The project includes a make file. For compiling codes we should run it like below.
 
