@@ -67,7 +67,7 @@ Whereas, to check the Virtual Memory and Physical Memory usage in Mac OS X, we u
         vm_size_t baseline_vm = t_info.virtual_size; // initial value of the virtual memory
         
         
-        ...
+        ... all computations ...
         
         
         cout << "Physical Memory: " << ( getMemoryUsage() - baseline ) / 1024 << "KB" <<endl;
@@ -80,7 +80,7 @@ Whereas, to check the Virtual Memory and Physical Memory usage in Mac OS X, we u
         }
 
         cout << "Virtual Memory: " << ( t_info.virtual_size - baseline_vm ) / 1024 << "KB" << endl;
-        
+    }
 
     
 If the classes had any errors related to the Mutex library, please import the library using:
