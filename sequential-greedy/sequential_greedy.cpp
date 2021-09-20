@@ -409,7 +409,7 @@ int read_graph( char *filename, Graph *G )
 
 int main( int argc, char *argv[] )
 {
-    chrono::steady_clock::time_point start_time, start_time_coloring, end_time;ì
+    chrono::steady_clock::time_point start_time, start_time_coloring, end_time;
 
     Graph *G = new Graph( 0 );
 
