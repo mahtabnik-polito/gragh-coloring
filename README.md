@@ -31,11 +31,63 @@ In order to check the Virtual Memory and Physical Memory usage, we used the foll
      SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
      cout<< "Used Physical Memory By current Process: " <<physMemUsedByMe <<"B"<<endl;
     
+    
+Whereas, to check the Virtual Memory and Physical Memory usage in Mac OS X, we used the following lines of code:
+
+    #include <sys/resource.h>
+    #include "stdlib.h"
+    #include "stdio.h"
+    #include "string.h"
+    #include <mach/mach.h>
+
+
+    // to get the Physical Memory usage
+    long getMemoryUsage()
+    {
+        struct rusage usage;
+        if(0 == getrusage(RUSAGE_SELF, &usage))
+            return usage.ru_maxrss; // bytes
+        else
+            return 0;
+    }
+    
+    int main( int argc, char *argv[] )
+    {
+        long baseline = getMemoryUsage(); // we get the initial value of the physical memory 
+
+        struct task_basic_info t_info;
+        mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+        if (KERN_SUCCESS != task_info(mach_task_self(),
+                                      TASK_BASIC_INFO, (task_info_t)&t_info,
+                                      &t_info_count))
+        {
+            return -1;
+        }
+        vm_size_t baseline_vm = t_info.virtual_size; // initial value of the virtual memory
+        
+        
+        ...
+        
+        
+        cout << "Physical Memory: " << ( getMemoryUsage() - baseline ) / 1024 << "KB" <<endl;
+
+        if (KERN_SUCCESS != task_info(mach_task_self(),
+                                      TASK_BASIC_INFO, (task_info_t)&t_info,
+                                      &t_info_count))
+        {
+            return -1;
+        }
+
+        cout << "Virtual Memory: " << ( t_info.virtual_size - baseline_vm ) / 1024 << "KB" << endl;
+        
+
+    
 If the classes had any errors related to the Mutex library, please import the library using:
 
     #include <mutex>
     
-The multi threading part is implemented using ThreadPool and Mutex in every algorithms except Distance one. the critical areas and parallelization parts were derived form the following paper:
+The multi threading part is implemented using ThreadPool and Mutex in every algorithms except Distance one and sequential greedy. The critical areas and parallelization parts were derived form the following paper:
 https://www.researchgate.net/publication/2296563_A_Comparison_of_Parallel_Graph_Coloring_Algorithms
 
 in order to test the algorithm with different number of threads, we set the value NTHREAD in the main method of the programs equal to 1,2,4,8 and analyzed the related result.
