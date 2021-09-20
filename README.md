@@ -14,22 +14,22 @@ Instruction to run the Luby, Smallest degree last, Jones Plassmann and Largest d
 
 5. In order to check the Virtual Memory and Physical Memory usage, we used the following lines of code in Windows 10:
 
-    #include <windows.h>
-    #include <stdio.h>
-    #include <psapi.h>
+     #include <windows.h>
+     #include <stdio.h>
+     #include <psapi.h>
 
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-    cout<< "Total virtual Memory: " <<totalVirtualMem<<"B"<<endl;
+     MEMORYSTATUSEX memInfo;
+     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+     GlobalMemoryStatusEx(&memInfo);
+     DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+     cout<< "Total virtual Memory: " <<totalVirtualMem<<"B"<<endl;
 
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
-    SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
-    cout<< "Used virtual Memory: " <<virtualMemUsedByMe <<"B"<<endl;
-    SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
-    cout<< "Used Physical Memory By current Process: " <<physMemUsedByMe <<"B"<<endl;
+     PROCESS_MEMORY_COUNTERS_EX pmc;
+     GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+     SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+     cout<< "Used virtual Memory: " <<virtualMemUsedByMe <<"B"<<endl;
+     SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
+     cout<< "Used Physical Memory By current Process: " <<physMemUsedByMe <<"B"<<endl;
     
 If the classes had any errors related to the Mutex library, please import the library using:
 
