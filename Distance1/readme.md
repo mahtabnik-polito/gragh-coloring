@@ -1,5 +1,5 @@
 The project includes a make file. For compiling codes we should run it like below.
-$ make
+**$ make**
 
 After executing this command the main file will generate. This file is used for coloring the input graph by Distance-1 algorithm in parallel and sequential.
 The input file could be .gra or .graph formats. Also, the number of threads in the third argument in input.
