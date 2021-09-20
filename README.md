@@ -5,5 +5,9 @@ We implemented and tested the Distance one algorithm on the Ubuntu Machine and t
 Instruction to run the Luby, Smallest degree last, Jones Plassmann and Largest degree first on Windows on Clion:
 1. Clone the repository
 2. Each class are in their folders, when you want to run the project, you need to add the path of the class in the execution part of the CMakeLists like the image below:
+
 ![CMake Lists](https://github.com/mahtabnik-polito/gragh-coloring/blob/main/images/cmake.JPG?raw=true "CMake Lists")
-4. each program takes a graph as an input, in the Clion we define the input arguments and every time we select the input graph
+
+4. each program takes a path of the graph as an input, in the Clion we define the input arguments and every time we select the input graph
+
+![defile the input argument](https://github.com/mahtabnik-polito/gragh-coloring/blob/main/images/files.JPG?raw=true "defile the input argument")
