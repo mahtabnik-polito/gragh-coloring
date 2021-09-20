@@ -35,6 +35,9 @@ If the classes had any errors related to the Mutex library, please import the li
 
     #include <mutex>
     
-The multi threading part is implemented using ThreadPool and Mutex in every algorithms except Distance one. in order to test the algorithm with different number of threads, we set the value NTHREAD in the main method of the programs equal to 1,2,4,8;
+The multi threading part is implemented using ThreadPool and Mutex in every algorithms except Distance one. the critical areas and parallelization parts were derived form the following paper:
+https://www.researchgate.net/publication/2296563_A_Comparison_of_Parallel_Graph_Coloring_Algorithms
+
+in order to test the algorithm with different number of threads, we set the value NTHREAD in the main method of the programs equal to 1,2,4,8 and analyzed the related result.
     
 
