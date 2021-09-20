@@ -12,7 +12,7 @@ Instruction to run the Luby, Smallest degree last, Jones Plassmann and Largest d
 
 ![defile the input argument](https://github.com/mahtabnik-polito/gragh-coloring/blob/main/images/files.JPG?raw=true "defile the input argument")
 
-5.In order to check the Virtual Memory and Physical Memory usage, we used the following lines of code in Windows 10:
+5. In order to check the Virtual Memory and Physical Memory usage, we used the following lines of code in Windows 10:
 
     #include <windows.h>
     #include <stdio.h>
