@@ -11,3 +11,24 @@ Instruction to run the Luby, Smallest degree last, Jones Plassmann and Largest d
 4. each program takes a path of the graph as an input, in the Clion we define the input arguments and every time we select the input graph
 
 ![defile the input argument](https://github.com/mahtabnik-polito/gragh-coloring/blob/main/images/files.JPG?raw=true "defile the input argument")
+
+5.In order to check the Virtual Memory and Physical Memory usage, we used the following lines of code in Windows 10:
+
+#include <windows.h>
+#include <stdio.h>
+#include <psapi.h>
+
+ MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+    cout<< "Total virtual Memory: " <<totalVirtualMem<<"B"<<endl;
+
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+    cout<< "Used virtual Memory: " <<virtualMemUsedByMe <<"B"<<endl;
+    SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
+    cout<< "Used Physical Memory By current Process: " <<physMemUsedByMe <<"B"<<endl;
+    
+
